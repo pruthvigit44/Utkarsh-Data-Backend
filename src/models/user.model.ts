@@ -1,94 +1,65 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-// ✅ TypeScript Interface
-export interface IUser extends Document {
-  srNo: string;
-
+interface FamilyMember {
   name: string;
-  address?: string;
-  city?: string;
-
-  mobile: string;
-  whatsapp?: string;
-
-  keva: string;
-  gotra: string;
-  mataji?: string;
-
-  profession?: string;
-  index?: string;
-
-  createdAt: Date;
-  updatedAt: Date;
+  age: string;
+  relation: string;
+  dob: string;
+  education: string;
+  phone: string;
 }
 
-// ✅ Schema
-const userSchema = new Schema<IUser>(
+export interface IUser extends Document {
+  srNo: string;
+  name: string;
+  address: string;
+  city: string;
+  mobile: string;
+  whatsapp: string;
+  keva: string;
+  gotra: string;
+  mataji: string;
+  profession: string;
+
+  dob: string;
+  education: string;
+
+  familyMembers: FamilyMember[];
+}
+
+const FamilySchema = new Schema<FamilyMember>({
+  name: { type: String, required: true },
+  age: { type: String, required: true },
+  relation: { type: String, required: true },
+  dob: { type: String, required: true },
+  education: { type: String, required: true },
+  phone: { type: String, required: true },
+});
+
+const UserSchema = new Schema<IUser>(
   {
-    srNo: {
-      type: String,
-      unique: true,
-    },
+    srNo: { type: String, required: true, unique: true },
 
-    name: {
-      type: String,
+    name: { type: String, required: true },
+    address: { type: String, required: true },
+    city: { type: String, required: true },
+    mobile: { type: String, required: true, unique: true },
+    whatsapp: { type: String, required: true },
+
+    keva: { type: String, required: true },
+    gotra: { type: String, required: true },
+    mataji: { type: String, required: true },
+    profession: { type: String, required: true },
+
+    dob: { type: String, required: true },
+    education: { type: String, required: true },
+
+    familyMembers: {
+      type: [FamilySchema],
       required: true,
-      trim: true,
-    },
-
-    address: {
-      type: String,
-      trim: true,
-    },
-
-    city: {
-      type: String,
-      trim: true,
-    },
-
-    mobile: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
-
-    whatsapp: {
-      type: String,
-      trim: true,
-    },
-
-    keva: {
-      type: String,
-      required: true,
-    },
-
-    gotra: {
-      type: String,
-      required: true,
-    },
-
-    mataji: {
-      type: String,
-      trim: true,
-    },
-
-    profession: {
-      type: String,
-      trim: true,
-    },
-
-    index: {
-      type: String,
-      trim: true,
     },
   },
-  {
-    timestamps: true, // ✅ auto adds createdAt, updatedAt
-  }
+  { timestamps: true }
 );
 
-// ✅ Export Model
-const User = mongoose.model<IUser>("User", userSchema);
-
-export default User;
+export default mongoose.model<IUser>("User", UserSchema);
