@@ -14,9 +14,16 @@ export const createUser = async (req: Request, res: Response) => {
       name,
       address,
       city,
+      state,
+      pincode,
+      country,
+      isOutOfCountry,
       mobile,
       whatsapp,
-      keva,
+      email,
+      bloodGroup,
+      // keva,
+      language = "EN",
       gotra,
       mataji,
       profession,
@@ -34,11 +41,11 @@ export const createUser = async (req: Request, res: Response) => {
     }
 
     // 🔥 Validate family members
-    if (!familyMembers || familyMembers.length === 0) {
-      return res.status(400).json({
-        message: "At least one family member required",
-      });
-    }
+    // if (!familyMembers || familyMembers.length === 0) {
+    //   return res.status(400).json({
+    //     message: "At least one family member required",
+    //   });
+    // }
 
     for (const m of familyMembers) {
       if (
@@ -46,7 +53,6 @@ export const createUser = async (req: Request, res: Response) => {
         !m.age ||
         !m.relation ||
         !m.dob ||
-        !m.education ||
         !m.phone
       ) {
         return res.status(400).json({
@@ -62,9 +68,16 @@ export const createUser = async (req: Request, res: Response) => {
       name,
       address,
       city,
+      state,
+      pincode,
+      country,
+      isOutOfCountry,
       mobile,
       whatsapp,
-      keva,
+      email,
+      bloodGroup,
+      // keva,
+      language,
       gotra,
       mataji,
       profession,
@@ -99,3 +112,57 @@ export const createUser = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getUser = async (req: Request, res: Response) => {
+  try {
+    const { mobile } = req.params;
+
+    const user = await User.findOne({ mobile });
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "User found",
+      data: user,
+    });
+
+  } catch (error) {
+    console.error("Server error:", error);
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const { mobile } = req.params;
+    const updateData = req.body;
+
+    const user = await User.findOneAndUpdate(
+      { mobile },
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "User updated successfully",
+      data: user,
+    });
+
+  } catch (error) {
+    console.error("Server error:", error);
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+}
