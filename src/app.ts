@@ -4,7 +4,7 @@ import userRouter from "./routes/user.route";
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: "*" })); // TEMP
 app.use(express.json());
 
 app.use("/api/users", userRouter);
@@ -13,4 +13,8 @@ app.get("/", (_req, res) => {
   res.send("API Running...");
 });
 
+app.use((err: any, _req: any, res: any, _next: any) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Internal Server Error" });
+});
 export default app;
