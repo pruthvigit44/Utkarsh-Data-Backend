@@ -11,5 +11,7 @@ services:
         sync: false
       - key: NODE_ENV
         value: production
-      - key: GOOGLE_CREDENTIALS
+      - key: GOOGLE_CLIENT_EMAIL
+        sync: false
+      - key: GOOGLE_PRIVATE_KEY
         sync: false

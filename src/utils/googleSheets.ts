@@ -1,20 +1,16 @@
-import { google } from "googleapis";
+import { google, auth as googleAuth } from "googleapis";
 
-const raw = process.env.GOOGLE_CREDENTIALS;
-if (!raw) throw new Error("GOOGLE_CREDENTIALS environment variable is not set");
+const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+const rawKey = process.env.GOOGLE_PRIVATE_KEY;
+if (!clientEmail || !rawKey) throw new Error("GOOGLE_CLIENT_EMAIL or GOOGLE_PRIVATE_KEY env var is missing");
 
-let parsed: Record<string, string>;
-try {
-  parsed = JSON.parse(raw);
-} catch {
-  parsed = JSON.parse(raw.replace(/\n/g, "\\n"));
-}
-// OpenSSL 3 (Node 24) requires actual newlines in PEM — fix any escaped \n sequences
-parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
+// Render may store \n as literal two chars — convert to real newlines for PEM
+const privateKey = rawKey.replace(/\\n/g, "\n");
 
-const auth = new google.auth.GoogleAuth({
-  credentials: parsed,
+const client = new googleAuth.JWT({
+  email: clientEmail,
+  key: privateKey,
   scopes: ["https://www.googleapis.com/auth/spreadsheets"],
 });
 
-export const sheets = google.sheets({ version: "v4", auth });
+export const sheets = google.sheets({ version: "v4", auth: client });
