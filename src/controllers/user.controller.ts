@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
-import { appendToSheet } from "../utils/sheetService";
+import { appendToSheet, updateSheetRecord } from "../utils/sheetService";
 
 // 🔥 Generate SR No
 const generateSrNo = async () => {
@@ -79,15 +79,10 @@ export const createUser = async (req: Request, res: Response) => {
 
     await newUser.save();
 
-    // 🔥 DEBUG
-    console.log("Saving to sheet:", newUser.srNo);
-
-    // 🔥 GOOGLE SHEETS INTEGRATION
     try {
       await appendToSheet(newUser);
-      console.log("Sheet updated successfully");
     } catch (err) {
-      console.error("Sheet error:", err);
+      console.error("Sheet sync failed:", err);
     }
 
     return res.status(201).json({
@@ -143,6 +138,12 @@ export const updateUser = async (req: Request, res: Response) => {
       return res.status(404).json({
         message: "User not found",
       });
+    }
+
+    try {
+      await updateSheetRecord(user);
+    } catch (err) {
+      console.error("Sheet sync failed:", err);
     }
 
     return res.status(200).json({
