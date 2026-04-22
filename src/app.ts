@@ -1,10 +1,11 @@
 import express from "express";
 import cors from "cors";
 import userRouter from "./routes/user.route";
+import adminRouter from "./routes/admin.routes";
 
 const app = express();
 
-const allowedOrigins = /^https:\/\/(utkarsh-parivar|utkarsh-data-frontend[\w-]*)\.vercel\.app$/;
+const allowedOrigins = /^https:\/\/(utkarsh-parivar|utkarsh-data-frontend[\w-]*|utkarsh-admin[\w-]*)\.vercel\.app$/;
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -20,6 +21,7 @@ app.use(cors({
 app.use(express.json());
 
 app.use("/api/users", userRouter);
+app.use("/api/admin", adminRouter);
 
 app.get("/", (_req, res) => {
   res.send("API Running...");
