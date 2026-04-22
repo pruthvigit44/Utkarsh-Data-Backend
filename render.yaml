@@ -7,6 +7,10 @@ services:
     buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
+      - key: NODE_VERSION
+        value: "18"
+      - key: NODE_OPTIONS
+        value: "--openssl-legacy-provider"
       - key: MONGO_URI
         sync: false
       - key: NODE_ENV
