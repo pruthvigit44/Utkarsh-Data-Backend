@@ -25,6 +25,10 @@ app.get("/", (_req, res) => {
   res.send("API Running...");
 });
 
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 app.use((err: any, _req: any, res: any, _next: any) => {
   console.error(err.stack);
   res.status(500).json({ message: "Internal Server Error" });
