@@ -131,7 +131,7 @@ export const updateUser = async (req: Request, res: Response) => {
     const user = await User.findOneAndUpdate(
       { mobile },
       updateData,
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     );
 
     if (!user) {
