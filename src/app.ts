@@ -5,7 +5,7 @@ import adminRouter from "./routes/admin.routes";
 
 const app = express();
 
-const allowedOrigins = /^https:\/\/(utkarsh-parivar|utkarsh-data-frontend[\w-]*|utkarsh-admin[\w-]*)\.vercel\.app$/;
+const allowedOrigins = /^https:\/\/(utkarsh-parivar|utkarsh-parivar-admin|utkarsh-data-frontend[\w-]*|utkarsh-admin[\w-]*)\.vercel\.app$/;
 
 app.use(cors({
   origin: (origin, callback) => {
