@@ -1,4 +1,4 @@
-import { google, auth as googleAuth } from "googleapis";
+import { google, Auth } from "googleapis";
 
 const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
 const rawKey = process.env.GOOGLE_PRIVATE_KEY;
@@ -7,7 +7,7 @@ if (!clientEmail || !rawKey) throw new Error("GOOGLE_CLIENT_EMAIL or GOOGLE_PRIV
 // Render may store \n as literal two chars — convert to real newlines for PEM
 const privateKey = rawKey.replace(/\\n/g, "\n");
 
-const client = new googleAuth.JWT({
+const client = new Auth.JWT({
   email: clientEmail,
   key: privateKey,
   scopes: ["https://www.googleapis.com/auth/spreadsheets"],
