@@ -4,7 +4,7 @@ import userRouter from "./routes/user.route";
 
 const app = express();
 
-const allowedOrigins = /^https:\/\/utkarsh-data-frontend[\w-]*\.vercel\.app$/;
+const allowedOrigins = /^https:\/\/(utkarsh-parivar|utkarsh-data-frontend[\w-]*)\.vercel\.app$/;
 
 app.use(cors({
   origin: (origin, callback) => {
