@@ -4,12 +4,16 @@ import userRouter from "./routes/user.route";
 
 const app = express();
 
-// app.use(cors({ origin: "*" })); // TEMP
+const allowedOrigins = /^https:\/\/utkarsh-data-frontend[\w-]*\.vercel\.app$/;
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",                 // local dev
-    "https://utkarsh-data-frontend.vercel.app"
-  ],
+  origin: (origin, callback) => {
+    if (!origin || origin === "http://localhost:5173" || allowedOrigins.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
