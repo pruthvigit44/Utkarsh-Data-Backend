@@ -1,15 +1,14 @@
 import { google, Auth } from "googleapis";
 
-const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
-const rawKey = process.env.GOOGLE_PRIVATE_KEY;
-if (!clientEmail || !rawKey) throw new Error("GOOGLE_CLIENT_EMAIL or GOOGLE_PRIVATE_KEY env var is missing");
+const b64 = process.env.GOOGLE_CREDENTIALS_B64;
+if (!b64) throw new Error("GOOGLE_CREDENTIALS_B64 env var is missing");
 
-// Render may store \n as literal two chars — convert to real newlines for PEM
-const privateKey = rawKey.replace(/\\n/g, "\n");
+// Base64 decode preserves exact file bytes — no newline corruption possible
+const credentials = JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
 
 const client = new Auth.JWT({
-  email: clientEmail,
-  key: privateKey,
+  email: credentials.client_email,
+  key: credentials.private_key,
   scopes: ["https://www.googleapis.com/auth/spreadsheets"],
 });
 
