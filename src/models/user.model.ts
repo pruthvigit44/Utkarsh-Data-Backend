@@ -45,9 +45,9 @@ const FamilySchema = new Schema<FamilyMember>({
   name: { type: String, required: true },
   age: { type: String, required: true },
   relation: { type: String, required: true },
-  dob: { type: String, required: true },
+  dob: { type: String },
   education: { type: String, },
-  phone: { type: String, required: true },
+  phone: { type: String },
   profession: { type: String, default: "" },
   city: { type: String, default: "" },
   state: { type: String, default: "" },
@@ -76,11 +76,11 @@ const UserSchema = new Schema<IUser>(
 
     language: { type: String, default: "EN" },
     // keva: { type: String, default: "" },
-    gotra: { type: String, required: true },
+    gotra: { type: String  },
     mataji: { type: String, default: "" },
     profession: { type: String, default: "" },
 
-    dob: { type: String, required: true },
+    dob: { type: String },
     education: { type: String, default: "" },
 
     familyMembers: {

@@ -40,20 +40,11 @@ export const createUser = async (req: Request, res: Response) => {
       });
     }
 
-    // 🔥 Validate family members
-    // if (!familyMembers || familyMembers.length === 0) {
-    //   return res.status(400).json({
-    //     message: "At least one family member required",
-    //   });
-    // }
-
     for (const m of familyMembers) {
       if (
         !m.name ||
         !m.age ||
-        !m.relation ||
-        !m.dob ||
-        !m.phone
+        !m.relation 
       ) {
         return res.status(400).json({
           message: "Invalid family member data",
