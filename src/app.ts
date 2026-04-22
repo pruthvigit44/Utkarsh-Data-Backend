@@ -8,7 +8,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",                 // local dev
-    "https://utkarsh-data-frontend.vercel.app/"      // replace with actual URL
+    "https://utkarsh-data-frontend.vercel.app"
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
