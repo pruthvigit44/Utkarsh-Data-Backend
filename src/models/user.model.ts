@@ -22,9 +22,6 @@ export interface IUser extends Document {
   name: string;
   age: string;
   address: string;
-  city: string;
-  state: string;
-  pincode: string;
   country: string;
   isOutOfCountry: boolean;
   mobile: string;
@@ -67,9 +64,6 @@ const UserSchema = new Schema<IUser>(
     name: { type: String, required: true },
     age: { type: String, default: "" },
     address: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String, default: "" },
-    pincode: { type: String, default: "" },
     country: { type: String, default: "" },
     isOutOfCountry: { type: Boolean, default: false },
     mobile: { type: String, required: true, unique: true },

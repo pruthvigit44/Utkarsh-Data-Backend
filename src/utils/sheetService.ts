@@ -98,13 +98,13 @@ const buildRows = (data: any, lang: "EN" | "GU") => {
   const surname = getSurname(data.name);
 
   // ── Row 1: Family header (spans full width) ──
-  const locationPart = data.isOutOfCountry
-    ? (isGU ? `વિદેશ: ${data.country}` : `Foreign: ${data.country}`)
-    : `${data.city}${data.state ? ", " + data.state : ""}`;
+  const foreignPart = data.isOutOfCountry
+    ? (isGU ? `  |  વિદેશ: ${data.country}` : `  |  Foreign: ${data.country}`)
+    : "";
 
   const familyHeaderText = isGU
-    ? `${data.srNo}  |  ${data.name}  |  મો.: ${data.mobile}  |  ${locationPart}  |  સરનામું: ${data.address}`
-    : `${data.srNo}  |  ${data.name}  |  Mob: ${data.mobile}  |  ${locationPart}  |  Address: ${data.address}`;
+    ? `${data.srNo}  |  ${data.name}  |  મો.: ${data.mobile}${foreignPart}  |  સરનામું: ${data.address}`
+    : `${data.srNo}  |  ${data.name}  |  Mob: ${data.mobile}${foreignPart}  |  Address: ${data.address}`;
 
   // ── Row 2: Community info (spans full width) ──
   // const communityText = isGU
@@ -180,7 +180,7 @@ const memberRows = (data.familyMembers || []).map((m: any, i: number) => [
   m.maritalStatus || "",
   m.businessAddress || "",
   m.isOutOfCountry ? (m.country || "") : "",
-  m.remarks || "",
+  "",
   "",
 ]);
 

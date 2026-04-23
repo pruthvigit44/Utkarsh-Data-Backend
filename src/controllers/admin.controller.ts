@@ -10,8 +10,6 @@ export const getAdminStats = async (_req: Request, res: Response) => {
       bloodGroupAgg,
       familyBloodGroupAgg,
       gotraAgg,
-      cityAgg,
-      stateAgg,
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ isOutOfCountry: true }),
@@ -39,20 +37,6 @@ export const getAdminStats = async (_req: Request, res: Response) => {
         { $group: { _id: "$gotra", count: { $sum: 1 } } },
         { $sort: { count: -1 } },
       ]),
-
-      User.aggregate([
-        { $match: { city: { $ne: "" } } },
-        { $group: { _id: "$city", count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-        { $limit: 10 },
-      ]),
-
-      User.aggregate([
-        { $match: { state: { $ne: "" } } },
-        { $group: { _id: "$state", count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-        { $limit: 10 },
-      ]),
     ]);
 
     const totalPeople = peopleAgg[0]?.total ?? 0;
@@ -69,8 +53,6 @@ export const getAdminStats = async (_req: Request, res: Response) => {
       outOfCountryFamilies,
       bloodGroupDistribution: bloodGroupMap,
       gotraDistribution: Object.fromEntries(gotraAgg.map((g: any) => [g._id, g.count])),
-      cityBreakdown: cityAgg.map((c: any) => ({ city: c._id, count: c.count })),
-      stateBreakdown: stateAgg.map((s: any) => ({ state: s._id, count: s.count })),
     });
   } catch (error) {
     console.error("Admin stats error:", error);
@@ -80,7 +62,7 @@ export const getAdminStats = async (_req: Request, res: Response) => {
 
 export const getRecentEntries = async (_req: Request, res: Response) => {
   try {
-    const fields = "srNo name mobile city state createdAt updatedAt familyMembers";
+    const fields = "srNo name mobile createdAt updatedAt familyMembers";
 
     const [recentlySubmitted, recentlyUpdated] = await Promise.all([
       User.find().select(fields).sort({ createdAt: -1 }).limit(10).lean(),
@@ -96,8 +78,6 @@ export const getRecentEntries = async (_req: Request, res: Response) => {
         srNo: u.srNo,
         name: u.name,
         mobile: u.mobile,
-        city: u.city,
-        state: u.state,
         familyCount: u.familyMembers?.length ?? 0,
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,
