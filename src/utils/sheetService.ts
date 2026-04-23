@@ -37,10 +37,10 @@ const COLUMNS = {
     "WhatsApp",
     "Email",
     "Blood Group",
-    "Address",
-    "City",
-    "State",
-    "Pincode / Country",
+    "Marital Status",
+    "Business Address",
+    "Foreign Country",
+    "Remarks",
     "Gotra / Mataji",
   ],
   GU: [
@@ -55,10 +55,10 @@ const COLUMNS = {
     "વોટ્સએપ",
     "ઈમેઈલ",
     "બ્લડ ગ્રુપ",
-    "સરનામું",
-    "શહેર",
-    "રાજ્ય",
-    "પિનકોડ / દેશ",
+    "વૈવાહિક સ્થિતિ",
+    "વ્યવસાયિક સરનામું",
+    "વિદેશ",
+    "ટિપ્પણી",
     "ગોત્ર / માતાજી",
   ],
 };
@@ -98,9 +98,13 @@ const buildRows = (data: any, lang: "EN" | "GU") => {
   const surname = getSurname(data.name);
 
   // ── Row 1: Family header (spans full width) ──
+  const locationPart = data.isOutOfCountry
+    ? (isGU ? `વિદેશ: ${data.country}` : `Foreign: ${data.country}`)
+    : `${data.city}${data.state ? ", " + data.state : ""}`;
+
   const familyHeaderText = isGU
-    ? `${data.srNo}  |  ${data.name}  |  મો.: ${data.mobile}  |  ${data.city}${data.state ? ", " + data.state : ""}  |  સરનામું: ${data.address}`
-    : `${data.srNo}  |  ${data.name}  |  Mob: ${data.mobile}  |  ${data.city}${data.state ? ", " + data.state : ""}  |  Address: ${data.address}`;
+    ? `${data.srNo}  |  ${data.name}  |  મો.: ${data.mobile}  |  ${locationPart}  |  સરનામું: ${data.address}`
+    : `${data.srNo}  |  ${data.name}  |  Mob: ${data.mobile}  |  ${locationPart}  |  Address: ${data.address}`;
 
   // ── Row 2: Community info (spans full width) ──
   // const communityText = isGU
@@ -144,8 +148,8 @@ const buildRows = (data: any, lang: "EN" | "GU") => {
 const headRow = [
   "1",
   data.name,
-  data.dob,
-  "", // age not stored for head of family
+  data.dob || "",
+  data.age || "",
   isGU ? "પોતે" : "Self",
   data.education || "",
   data.profession || "",
@@ -153,35 +157,31 @@ const headRow = [
   data.whatsapp || "",
   data.email || "",
   data.bloodGroup || "",
-  data.address,
-  data.city,
-  data.state || "",
-  data.isOutOfCountry
-    ? (isGU ? `દેશ: ${data.country}` : `Country: ${data.country}`)
-    : (data.pincode || ""),
-  `${data.gotra}${data.mataji ? " / " + data.mataji : ""}`,
+  data.maritalStatus || "",
+  data.businessAddress || "",
+  data.isOutOfCountry ? (data.country || "") : "",
+  data.remarks || "",
+  `${data.gotra || ""}${data.mataji ? " / " + data.mataji : ""}`,
 ];
 
 // ── Family member rows ──
 const memberRows = (data.familyMembers || []).map((m: any, i: number) => [
   String(i + 2),
   m.name,
-  m.dob,
-  m.age,
+  m.dob || "",
+  m.age || "",
   m.relation,
   m.education || "",
   m.profession || "",
-  m.phone,
-  "", // no whatsapp for members
+  m.phone || "",
+  "",
   m.email || "",
   m.bloodGroup || "",
-  "", // no separate address for members
-  m.city || "",
-  m.state || "",
-  m.isOutOfCountry
-    ? (isGU ? `દેશ: ${m.country}` : `Country: ${m.country}`)
-    : (m.pincode || ""),
-  "", // no gotra/mataji for members
+  m.maritalStatus || "",
+  m.businessAddress || "",
+  m.isOutOfCountry ? (m.country || "") : "",
+  m.remarks || "",
+  "",
 ]);
 
   return {

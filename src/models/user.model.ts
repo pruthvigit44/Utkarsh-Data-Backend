@@ -8,9 +8,9 @@ interface FamilyMember {
   education: string;
   phone: string;
   profession: string;
-  city: string;
-  state: string;
-  pincode: string;
+  businessAddress: string;
+  maritalStatus: string;
+  remarks: string;
   country: string;
   isOutOfCountry: boolean;
   email: string;
@@ -20,6 +20,7 @@ interface FamilyMember {
 export interface IUser extends Document {
   srNo: string;
   name: string;
+  age: string;
   address: string;
   city: string;
   state: string;
@@ -34,24 +35,25 @@ export interface IUser extends Document {
   gotra: string;
   mataji: string;
   profession: string;
-
+  businessAddress: string;
+  maritalStatus: string;
+  remarks: string;
   dob: string;
   education: string;
-
   familyMembers: FamilyMember[];
 }
 
 const FamilySchema = new Schema<FamilyMember>({
   name: { type: String, required: true },
-  age: { type: String, required: true },
+  age: { type: String, default: "" },
   relation: { type: String, required: true },
-  dob: { type: String },
-  education: { type: String, },
-  phone: { type: String },
+  dob: { type: String, default: "" },
+  education: { type: String, default: "" },
+  phone: { type: String, default: "" },
   profession: { type: String, default: "" },
-  city: { type: String, default: "" },
-  state: { type: String, default: "" },
-  pincode: { type: String, default: "" },
+  businessAddress: { type: String, default: "" },
+  maritalStatus: { type: String, default: "" },
+  remarks: { type: String, default: "" },
   country: { type: String, default: "" },
   isOutOfCountry: { type: Boolean, default: false },
   email: { type: String, default: "" },
@@ -63,6 +65,7 @@ const UserSchema = new Schema<IUser>(
     srNo: { type: String, required: true, unique: true },
 
     name: { type: String, required: true },
+    age: { type: String, default: "" },
     address: { type: String, required: true },
     city: { type: String, required: true },
     state: { type: String, default: "" },
@@ -75,12 +78,14 @@ const UserSchema = new Schema<IUser>(
     bloodGroup: { type: String, default: "" },
 
     language: { type: String, default: "EN" },
-    // keva: { type: String, default: "" },
-    gotra: { type: String  },
+    gotra: { type: String },
     mataji: { type: String, default: "" },
     profession: { type: String, default: "" },
+    businessAddress: { type: String, default: "" },
+    maritalStatus: { type: String, default: "" },
+    remarks: { type: String, default: "" },
 
-    dob: { type: String },
+    dob: { type: String, default: "" },
     education: { type: String, default: "" },
 
     familyMembers: {

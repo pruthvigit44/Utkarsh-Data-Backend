@@ -5,13 +5,14 @@ import { appendToSheet, updateSheetRecord } from "../utils/sheetService";
 // 🔥 Generate SR No
 const generateSrNo = async () => {
   const count = await User.countDocuments();
-  return `U${String(count + 1).padStart(3, "0")}`;
+  return `U${String(count + 1).padStart(4, "0")}`;
 };
 
 export const createUser = async (req: Request, res: Response) => {
   try {
     const {
       name,
+      age,
       address,
       city,
       state,
@@ -22,11 +23,13 @@ export const createUser = async (req: Request, res: Response) => {
       whatsapp,
       email,
       bloodGroup,
-      // keva,
       language = "EN",
       gotra,
       mataji,
       profession,
+      businessAddress,
+      maritalStatus,
+      remarks,
       dob,
       education,
       familyMembers,
@@ -57,6 +60,7 @@ export const createUser = async (req: Request, res: Response) => {
     const newUser = new User({
       srNo,
       name,
+      age,
       address,
       city,
       state,
@@ -67,11 +71,13 @@ export const createUser = async (req: Request, res: Response) => {
       whatsapp,
       email,
       bloodGroup,
-      // keva,
       language,
       gotra,
       mataji,
       profession,
+      businessAddress,
+      maritalStatus,
+      remarks,
       dob,
       education,
       familyMembers,
