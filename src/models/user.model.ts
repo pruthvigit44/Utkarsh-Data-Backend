@@ -10,7 +10,6 @@ interface FamilyMember {
   profession: string;
   businessAddress: string;
   maritalStatus: string;
-  remarks: string;
   country: string;
   isOutOfCountry: boolean;
   email: string;
@@ -51,7 +50,6 @@ const FamilySchema = new Schema<FamilyMember>({
   profession: { type: String, default: "" },
   businessAddress: { type: String, default: "" },
   maritalStatus: { type: String, default: "" },
-  remarks: { type: String, default: "" },
   country: { type: String, default: "" },
   isOutOfCountry: { type: Boolean, default: false },
   email: { type: String, default: "" },
