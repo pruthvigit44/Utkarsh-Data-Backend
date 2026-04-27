@@ -49,7 +49,7 @@ export const createUser = async (req: Request, res: Response) => {
         
       ) {
         return res.status(400).json({
-          message: "Invalid family member data",
+          message: "Invalid family member data/Add family member details",
         });
       }
     }
