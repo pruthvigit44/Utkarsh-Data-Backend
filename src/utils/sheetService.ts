@@ -22,7 +22,7 @@ const SHEET_CONFIG = {
 //   ],
 // };
 
-const TOTAL_COLS = 16;
+const TOTAL_COLS = 15;
 
 const COLUMNS = {
   EN: [
@@ -40,8 +40,7 @@ const COLUMNS = {
     "Marital Status",
     "Business Address",
     "Foreign Country",
-    "Remarks",
-    "Gotra / Mataji",
+    "Gotra / Mataji / મોસાળ / Remarks",
   ],
   GU: [
     "ક્રમ નં.",
@@ -58,8 +57,7 @@ const COLUMNS = {
     "વૈવાહિક સ્થિતિ",
     "વ્યવસાયિક સરનામું",
     "વિદેશ",
-    "ટિપ્પણી",
-    "ગોત્ર / માતાજી",
+    "ગોત્ર / માતાજી / મોસાળ / ટિપ્પણી",
   ],
 };
 
@@ -160,8 +158,7 @@ const headRow = [
   data.maritalStatus || "",
   data.businessAddress || "",
   data.isOutOfCountry ? (data.country || "") : "",
-  data.remarks || "",
-  `${data.gotra || ""}${data.mataji ? " / " + data.mataji : ""}`,
+  `${data.gotra || ""}${data.mataji ? " / " + data.mataji : ""}${data.mosala ? " / " + data.mosala : ""}${data.remarks ? " / " + data.remarks : ""}`,
 ];
 
 // ── Family member rows ──
@@ -180,7 +177,6 @@ const memberRows = (data.familyMembers || []).map((m: any, i: number) => [
   m.maritalStatus || "",
   m.businessAddress || "",
   m.isOutOfCountry ? (m.country || "") : "",
-  "",
   "",
 ]);
 
@@ -539,8 +535,7 @@ const applyFormatting = async (
     { updateDimensionProperties: { range: { sheetId, dimension: "COLUMNS", startIndex: 11, endIndex: 12 }, properties: { pixelSize: 200 }, fields: "pixelSize" } },
     { updateDimensionProperties: { range: { sheetId, dimension: "COLUMNS", startIndex: 12, endIndex: 13 }, properties: { pixelSize: 100 }, fields: "pixelSize" } },
     { updateDimensionProperties: { range: { sheetId, dimension: "COLUMNS", startIndex: 13, endIndex: 14 }, properties: { pixelSize: 100 }, fields: "pixelSize" } },
-    { updateDimensionProperties: { range: { sheetId, dimension: "COLUMNS", startIndex: 14, endIndex: 15 }, properties: { pixelSize: 120 }, fields: "pixelSize" } },
-    { updateDimensionProperties: { range: { sheetId, dimension: "COLUMNS", startIndex: 15, endIndex: 16 }, properties: { pixelSize: 160 }, fields: "pixelSize" } },
+    { updateDimensionProperties: { range: { sheetId, dimension: "COLUMNS", startIndex: 14, endIndex: 15 }, properties: { pixelSize: 220 }, fields: "pixelSize" } },
 
     // ── Blank spacer row after block ──
     {
@@ -588,24 +583,38 @@ export const appendToSheet = async (data: any) => {
 
 // ── UPDATE (find and replace existing block) ──────────────────────
 export const updateSheetRecord = async (data: any) => {
-  const lang: "EN" | "GU" = data.language === "GU" ? "GU" : "EN";
-  const sheet = SHEET_CONFIG[lang];
-
-  // Find the row with this srNo
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${sheet.name}!A:A`,
-  });
-
-  const allRows: any[][] = res.data.values || [];
   const marker = data.srNo;
 
-  const startRowIndex = allRows.findIndex(
-    (row) => row[0] && String(row[0]).includes(marker)
-  );
+  // Always search GU first, then EN — independent of data.language.
+  // This ensures GU-created records are always updated in the GU sheet
+  // even if the language field in DB was previously corrupted to "EN".
+  const searchOrder: ("EN" | "GU")[] = ["GU", "EN"];
+
+  let foundLang: "EN" | "GU" = "GU";
+  let foundSheet = SHEET_CONFIG["GU"];
+  let startRowIndex = -1;
+  let allRows: any[][] = [];
+
+  for (const searchLang of searchOrder) {
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${SHEET_CONFIG[searchLang].name}!A:A`,
+    });
+    const rows: any[][] = res.data.values || [];
+    const idx = rows.findIndex(
+      (row) => row[0] && String(row[0]).includes(marker)
+    );
+    if (idx !== -1) {
+      foundLang = searchLang;
+      foundSheet = SHEET_CONFIG[searchLang];
+      startRowIndex = idx;
+      allRows = rows;
+      break;
+    }
+  }
 
   if (startRowIndex === -1) {
-    // Not found — just append
+    // Not found in either sheet — append to preferred language sheet
     await appendToSheet(data);
     return;
   }
@@ -626,7 +635,7 @@ export const updateSheetRecord = async (data: any) => {
       requests: [{
         deleteDimension: {
           range: {
-            sheetId: sheet.id,
+            sheetId: foundSheet.id,
             dimension: "ROWS",
             startIndex: startRowIndex,
             endIndex: endRowIndex + 1,
@@ -637,10 +646,9 @@ export const updateSheetRecord = async (data: any) => {
   });
 
   // Insert new rows at same position
-  const { familyHeaderText, colHeaders, headRow, memberRows } = buildRows(data, lang);
+  const { familyHeaderText, colHeaders, headRow, memberRows } = buildRows(data, foundLang);
   const newValues = [
     [familyHeaderText],
-    // [communityText],
     colHeaders,
     headRow,
     ...memberRows,
@@ -653,7 +661,7 @@ export const updateSheetRecord = async (data: any) => {
       requests: [{
         insertDimension: {
           range: {
-            sheetId: sheet.id,
+            sheetId: foundSheet.id,
             dimension: "ROWS",
             startIndex: startRowIndex,
             endIndex: startRowIndex + newValues.length,
@@ -666,10 +674,10 @@ export const updateSheetRecord = async (data: any) => {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${sheet.name}!A${startRowIndex + 1}`,
+    range: `${foundSheet.name}!A${startRowIndex + 1}`,
     valueInputOption: "USER_ENTERED",
     requestBody: { values: newValues },
   });
 
-  await applyFormatting(sheet.id, startRowIndex, 1 + memberRows.length, lang);
+  await applyFormatting(foundSheet.id, startRowIndex, 1 + memberRows.length, foundLang);
 };

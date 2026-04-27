@@ -31,6 +31,7 @@ export interface IUser extends Document {
   language: string;
   gotra: string;
   mataji: string;
+  mosala: string;
   profession: string;
   businessAddress: string;
   maritalStatus: string;
@@ -74,6 +75,7 @@ const UserSchema = new Schema<IUser>(
     language: { type: String, default: "EN" },
     gotra: { type: String },
     mataji: { type: String, default: "" },
+    mosala: { type: String, default: "" },
     profession: { type: String, default: "" },
     businessAddress: { type: String, default: "" },
     maritalStatus: { type: String, default: "" },

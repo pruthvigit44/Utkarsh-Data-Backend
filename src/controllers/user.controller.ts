@@ -23,6 +23,7 @@ export const createUser = async (req: Request, res: Response) => {
       language = "EN",
       gotra,
       mataji,
+      mosala,
       profession,
       businessAddress,
       maritalStatus,
@@ -45,6 +46,7 @@ export const createUser = async (req: Request, res: Response) => {
         !m.name ||
         !m.age ||
         !m.relation 
+        
       ) {
         return res.status(400).json({
           message: "Invalid family member data",
@@ -68,6 +70,7 @@ export const createUser = async (req: Request, res: Response) => {
       language,
       gotra,
       mataji,
+      mosala,
       profession,
       businessAddress,
       maritalStatus,
@@ -128,20 +131,33 @@ export const updateUser = async (req: Request, res: Response) => {
     const { mobile } = req.params;
     const updateData = req.body;
 
+    const originalUser = await User.findOne({ mobile }).lean();
+    if (!originalUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Preserve the language the record was originally created in
+    const originalLanguage = originalUser.language as "EN" | "GU";
+
     const user = await User.findOneAndUpdate(
       { mobile },
-      updateData,
-      { returnDocument: "after", runValidators: true }
+      { ...updateData, language: originalLanguage },
+      { new: true, runValidators: true }
     );
 
     if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
+      return res.status(404).json({ message: "User not found" });
     }
 
     try {
-      await updateSheetRecord(user);
+      // Build a plain object for the sheet service — never use the Mongoose
+      // document directly, so data.language is guaranteed to be correct.
+      const sheetData = {
+        ...updateData,
+        srNo: originalUser.srNo,
+        language: originalLanguage,
+      };
+      await updateSheetRecord(sheetData);
     } catch (err) {
       console.error("Sheet sync failed:", err);
     }
