@@ -1,4 +1,5 @@
 import { sheets } from "./googleSheets";
+import User from "../models/user.model";
 
 const SPREADSHEET_ID = "1pHP1zfw4MubBUSWJnOcUEwHAUsRk3f2ums9p7AuFihQ";
 
@@ -680,4 +681,49 @@ export const updateSheetRecord = async (data: any) => {
   });
 
   await applyFormatting(foundSheet.id, startRowIndex, 1 + memberRows.length, foundLang);
+};
+
+// ── SYNC: append DB records missing from both sheets ─────────────
+export const syncMissingToSheet = async (): Promise<{ synced: number; errors: number }> => {
+  if (!sheets) {
+    console.warn("[Sync] Google Sheets not initialized, skipping.");
+    return { synced: 0, errors: 0 };
+  }
+
+  // Collect all srNos already present in both sheets
+  const sheetSrNos = new Set<string>();
+  for (const lang of ["EN", "GU"] as const) {
+    try {
+      const res = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_CONFIG[lang].name}!A:A`,
+      });
+      for (const row of (res.data.values || [])) {
+        const match = row[0] && String(row[0]).match(/^(U\d+)\s*\|/);
+        if (match) sheetSrNos.add(match[1]);
+      }
+    } catch (err) {
+      console.error(`[Sync] Failed to read ${lang} sheet:`, err);
+    }
+  }
+
+  const allUsers = await User.find().sort({ srNo: 1 }).lean();
+  let synced = 0;
+  let errors = 0;
+
+  for (const user of allUsers) {
+    if (!sheetSrNos.has(user.srNo)) {
+      try {
+        await appendToSheet(user);
+        console.log(`[Sync] Appended missing record: ${user.srNo}`);
+        synced++;
+      } catch (err) {
+        console.error(`[Sync] Failed to sync ${user.srNo}:`, err);
+        errors++;
+      }
+    }
+  }
+
+  console.log(`[Sync] Complete — synced: ${synced}, errors: ${errors}`);
+  return { synced, errors };
 };

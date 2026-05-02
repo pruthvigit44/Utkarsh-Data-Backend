@@ -142,7 +142,7 @@ export const updateUser = async (req: Request, res: Response) => {
     const user = await User.findOneAndUpdate(
       { mobile },
       { ...updateData, language: originalLanguage },
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     );
 
     if (!user) {

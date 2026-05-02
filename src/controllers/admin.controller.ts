@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
+import { syncMissingToSheet } from "../utils/sheetService";
 
 export const getAdminStats = async (_req: Request, res: Response) => {
   try {
@@ -90,5 +91,18 @@ export const getRecentEntries = async (_req: Request, res: Response) => {
   } catch (error) {
     console.error("Admin recent error:", error);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const syncSheets = async (_req: Request, res: Response) => {
+  try {
+    const result = await syncMissingToSheet();
+    return res.status(200).json({
+      message: `Sync complete. Synced: ${result.synced}, Errors: ${result.errors}`,
+      ...result,
+    });
+  } catch (error) {
+    console.error("Sync sheets error:", error);
+    return res.status(500).json({ message: "Sync failed" });
   }
 };
