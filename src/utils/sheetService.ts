@@ -638,7 +638,7 @@ export const updateSheetRecord = async (data: any) => {
             sheetId: foundSheet.id,
             dimension: "ROWS",
             startIndex: startRowIndex,
-            endIndex: endRowIndex + 1,
+            endIndex: endRowIndex,
           },
         },
       }],
