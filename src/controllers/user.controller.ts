@@ -82,16 +82,19 @@ export const createUser = async (req: Request, res: Response) => {
 
     await newUser.save();
 
+    let sheetSynced = true;
     try {
       await appendToSheet(newUser);
     } catch (err) {
       console.error("Sheet sync failed:", err);
+      sheetSynced = false;
     }
 
     return res.status(201).json({
       message: "User created successfully",
       srNo,
       data: newUser,
+      sheetSynced,
     });
 
   } catch (error) {
@@ -149,22 +152,21 @@ export const updateUser = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    let sheetSynced = true;
     try {
-      // Build a plain object for the sheet service — never use the Mongoose
-      // document directly, so data.language is guaranteed to be correct.
-      const sheetData = {
-        ...updateData,
-        srNo: originalUser.srNo,
-        language: originalLanguage,
-      };
+      // Use the full updated document from DB so all fields (including
+      // familyMembers) are written to the sheet, not just the request body.
+      const sheetData = { ...user.toObject(), language: originalLanguage };
       await updateSheetRecord(sheetData);
     } catch (err) {
       console.error("Sheet sync failed:", err);
+      sheetSynced = false;
     }
 
     return res.status(200).json({
       message: "User updated successfully",
       data: user,
+      sheetSynced,
     });
 
   } catch (error) {
