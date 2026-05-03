@@ -728,6 +728,8 @@ export const syncMissingToSheet = async (): Promise<{ synced: number; errors: nu
   return { synced, errors };
 };
 
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
 // ── FORCE RESYNC: overwrite every DB record in the sheet ─────────
 export const forceResyncAll = async (): Promise<{ synced: number; errors: number }> => {
   const allUsers = await User.find().sort({ srNo: 1 }).lean();
@@ -739,10 +741,25 @@ export const forceResyncAll = async (): Promise<{ synced: number; errors: number
       await updateSheetRecord(user);
       console.log(`[ForceResync] Resynced: ${user.srNo}`);
       synced++;
-    } catch (err) {
-      console.error(`[ForceResync] Failed: ${user.srNo}`, err);
-      errors++;
+    } catch (err: any) {
+      if (err?.status === 429 || err?.code === 429) {
+        console.warn(`[ForceResync] Rate limited on ${user.srNo} — waiting 60s then retrying...`);
+        await sleep(60000);
+        try {
+          await updateSheetRecord(user);
+          console.log(`[ForceResync] Resynced (retry): ${user.srNo}`);
+          synced++;
+        } catch (retryErr) {
+          console.error(`[ForceResync] Retry failed: ${user.srNo}`, retryErr);
+          errors++;
+        }
+      } else {
+        console.error(`[ForceResync] Failed: ${user.srNo}`, err);
+        errors++;
+      }
     }
+    // 3s gap between records keeps reads ~20/min and writes ~60/min — within quota
+    await sleep(3000);
   }
 
   console.log(`[ForceResync] Complete — synced: ${synced}, errors: ${errors}`);

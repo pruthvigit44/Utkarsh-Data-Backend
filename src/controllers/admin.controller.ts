@@ -108,14 +108,11 @@ export const syncSheets = async (_req: Request, res: Response) => {
 };
 
 export const forceResyncSheets = async (_req: Request, res: Response) => {
-  try {
-    const result = await forceResyncAll();
-    return res.status(200).json({
-      message: `Force resync complete. Resynced: ${result.synced}, Errors: ${result.errors}`,
-      ...result,
-    });
-  } catch (error) {
-    console.error("Force resync error:", error);
-    return res.status(500).json({ message: "Force resync failed" });
-  }
+  // Respond immediately — resync runs in background to avoid HTTP timeout
+  res.status(202).json({ message: "Force resync started. Check server logs for progress." });
+  forceResyncAll().then(result => {
+    console.log(`[ForceResync] Done — synced: ${result.synced}, errors: ${result.errors}`);
+  }).catch(err => {
+    console.error("[ForceResync] Fatal error:", err);
+  });
 };
