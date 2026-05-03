@@ -602,8 +602,9 @@ export const updateSheetRecord = async (data: any) => {
       range: `${SHEET_CONFIG[searchLang].name}!A:A`,
     });
     const rows: any[][] = res.data.values || [];
+    const markerRegex = new RegExp(`^${marker}(\\s*\\||$)`);
     const idx = rows.findIndex(
-      (row) => row[0] && String(row[0]).includes(marker)
+      (row) => row[0] && markerRegex.test(String(row[0]))
     );
     if (idx !== -1) {
       foundLang = searchLang;
@@ -620,10 +621,11 @@ export const updateSheetRecord = async (data: any) => {
     return;
   }
 
-  // Find end of this block (next non-empty A column entry after startRowIndex + 3)
+  // Find start of the NEXT block — any cell in col A that begins with a srNo pattern
+  const nextBlockPattern = /^U\d{4}/;
   let endRowIndex = allRows.length;
-  for (let i = startRowIndex + 3; i < allRows.length; i++) {
-    if (allRows[i][0] && String(allRows[i][0]).includes("U") && allRows[i][0] !== marker) {
+  for (let i = startRowIndex + 1; i < allRows.length; i++) {
+    if (allRows[i]?.[0] && nextBlockPattern.test(String(allRows[i][0]))) {
       endRowIndex = i;
       break;
     }
@@ -699,7 +701,7 @@ export const syncMissingToSheet = async (): Promise<{ synced: number; errors: nu
         range: `${SHEET_CONFIG[lang].name}!A:A`,
       });
       for (const row of (res.data.values || [])) {
-        const match = row[0] && String(row[0]).match(/^(U\d+)\s*\|/);
+        const match = row[0] && String(row[0]).match(/^(U\d{4})/);
         if (match) sheetSrNos.add(match[1]);
       }
     } catch (err) {
