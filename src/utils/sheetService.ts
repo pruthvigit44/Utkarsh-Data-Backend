@@ -727,3 +727,24 @@ export const syncMissingToSheet = async (): Promise<{ synced: number; errors: nu
   console.log(`[Sync] Complete — synced: ${synced}, errors: ${errors}`);
   return { synced, errors };
 };
+
+// ── FORCE RESYNC: overwrite every DB record in the sheet ─────────
+export const forceResyncAll = async (): Promise<{ synced: number; errors: number }> => {
+  const allUsers = await User.find().sort({ srNo: 1 }).lean();
+  let synced = 0;
+  let errors = 0;
+
+  for (const user of allUsers) {
+    try {
+      await updateSheetRecord(user);
+      console.log(`[ForceResync] Resynced: ${user.srNo}`);
+      synced++;
+    } catch (err) {
+      console.error(`[ForceResync] Failed: ${user.srNo}`, err);
+      errors++;
+    }
+  }
+
+  console.log(`[ForceResync] Complete — synced: ${synced}, errors: ${errors}`);
+  return { synced, errors };
+};

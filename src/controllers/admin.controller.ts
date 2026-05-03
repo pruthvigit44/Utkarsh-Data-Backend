@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
-import { syncMissingToSheet } from "../utils/sheetService";
+import { syncMissingToSheet, forceResyncAll } from "../utils/sheetService";
 
 export const getAdminStats = async (_req: Request, res: Response) => {
   try {
@@ -104,5 +104,18 @@ export const syncSheets = async (_req: Request, res: Response) => {
   } catch (error) {
     console.error("Sync sheets error:", error);
     return res.status(500).json({ message: "Sync failed" });
+  }
+};
+
+export const forceResyncSheets = async (_req: Request, res: Response) => {
+  try {
+    const result = await forceResyncAll();
+    return res.status(200).json({
+      message: `Force resync complete. Resynced: ${result.synced}, Errors: ${result.errors}`,
+      ...result,
+    });
+  } catch (error) {
+    console.error("Force resync error:", error);
+    return res.status(500).json({ message: "Force resync failed" });
   }
 };
