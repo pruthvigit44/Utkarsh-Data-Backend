@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
-import { appendToSheet, updateSheetRecord } from "../utils/sheetService";
+import { appendToSheet } from "../utils/sheetService";
 
 // 🔥 Generate SR No
 const generateSrNo = async () => {
@@ -105,74 +105,3 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
-export const getUser = async (req: Request, res: Response) => {
-  try {
-    const { mobile } = req.params;
-
-    const user = await User.findOne({ mobile });
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
-    }
-
-    return res.status(200).json({
-      message: "User found",
-      data: user,
-    });
-
-  } catch (error) {
-    console.error("Server error:", error);
-    return res.status(500).json({
-      message: "Server error",
-    });
-  }
-};
-
-export const updateUser = async (req: Request, res: Response) => {
-  try {
-    const { mobile } = req.params;
-    const updateData = req.body;
-
-    const originalUser = await User.findOne({ mobile }).lean();
-    if (!originalUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Preserve the language the record was originally created in
-    const originalLanguage = originalUser.language as "EN" | "GU";
-
-    const user = await User.findOneAndUpdate(
-      { mobile },
-      { ...updateData, language: originalLanguage },
-      { returnDocument: "after", runValidators: true }
-    );
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    let sheetSynced = true;
-    try {
-      // Use the full updated document from DB so all fields (including
-      // familyMembers) are written to the sheet, not just the request body.
-      const sheetData = { ...user.toObject(), language: originalLanguage };
-      await updateSheetRecord(sheetData);
-    } catch (err) {
-      console.error("Sheet sync failed:", err);
-      sheetSynced = false;
-    }
-
-    return res.status(200).json({
-      message: "User updated successfully",
-      data: user,
-      sheetSynced,
-    });
-
-  } catch (error) {
-    console.error("Server error:", error);
-    return res.status(500).json({
-      message: "Server error",
-    });
-  }
-}
