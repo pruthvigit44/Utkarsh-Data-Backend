@@ -191,14 +191,6 @@ const memberRows = (data.familyMembers || []).map((m: any, i: number) => [
   };
 };
 
-// ── Get current row count for a sheet ────────────────────────────
-const getSheetRowCount = async (sheetName: string): Promise<number> => {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${sheetName}!A:A`,
-  });
-  return res.data.values ? res.data.values.length : 0;
-};
 
 // ── Apply formatting for one entry block ─────────────────────────
 // const applyFormatting = async (
@@ -560,24 +552,24 @@ export const appendToSheet = async (data: any) => {
   const sheet = SHEET_CONFIG[lang];
   const { familyHeaderText, colHeaders, headRow, memberRows } = buildRows(data, lang);
 
-  const startRow = await getSheetRowCount(sheet.name);
-
-  // Write values
   const values = [
     [familyHeaderText],
-    // [communityText],
     colHeaders,
     headRow,
     ...memberRows,
     [], // blank spacer
   ];
 
-  await sheets.spreadsheets.values.append({
+  const appendRes = await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
     range: `${sheet.name}!A1`,
     valueInputOption: "USER_ENTERED",
     requestBody: { values },
   });
+
+  // Derive the exact row where the block landed from the API response
+  const rangeMatch = appendRes.data.updates?.updatedRange?.match(/!A(\d+)/);
+  const startRow = rangeMatch ? parseInt(rangeMatch[1], 10) - 1 : 0;
 
   await applyFormatting(sheet.id, startRow, 1 + memberRows.length, lang);
 };
@@ -630,6 +622,7 @@ export const updateSheetRecord = async (data: any) => {
       break;
     }
   }
+  const isLastBlock = endRowIndex === allRows.length;
 
   // Delete old block
   await sheets.spreadsheets.batchUpdate({
@@ -650,12 +643,14 @@ export const updateSheetRecord = async (data: any) => {
 
   // Insert new rows at same position
   const { familyHeaderText, colHeaders, headRow, memberRows } = buildRows(data, foundLang);
+  // For the last block the old trailing spacer was not deleted (values.get omits trailing blanks),
+  // so it naturally follows the re-inserted block — don't add another one.
   const newValues = [
     [familyHeaderText],
     colHeaders,
     headRow,
     ...memberRows,
-    [],
+    ...(isLastBlock ? [] : [[]]),
   ];
 
   await sheets.spreadsheets.batchUpdate({
