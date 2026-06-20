@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import app from "./app";
 import connectDB from "./config/db";
 import { syncMissingToSheet } from "./utils/sheetService";
+import { syncMissingDikiriToSheet } from "./utils/dikiriSheetService";
 
 dotenv.config();
 
@@ -16,8 +17,10 @@ const startServer = async () => {
       console.log(`Server running on port ${PORT}`);
       // Run once on startup, then every hour — non-blocking
       syncMissingToSheet().catch((err) => console.error("[Sync] Startup sync failed:", err));
+      syncMissingDikiriToSheet().catch((err) => console.error("[DikiriSync] Startup sync failed:", err));
       setInterval(() => {
         syncMissingToSheet().catch((err) => console.error("[Sync] Periodic sync failed:", err));
+        syncMissingDikiriToSheet().catch((err) => console.error("[DikiriSync] Periodic sync failed:", err));
       }, SYNC_INTERVAL_MS);
     });
 
