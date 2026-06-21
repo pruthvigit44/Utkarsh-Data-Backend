@@ -213,6 +213,44 @@ export const getDikriRecentEntries = async (_req: Request, res: Response) => {
   }
 };
 
+export const getRecentSubmittedPaginated = async (req: Request, res: Response) => {
+  try {
+    const cursor = req.query.cursor as string | undefined;
+    const limit = Math.min(Number(req.query.limit) || 20, 50);
+
+    const query = cursor ? { createdAt: { $lt: new Date(cursor) } } : {};
+    const docs = await User.find(query).sort({ createdAt: -1 }).limit(limit + 1).lean();
+
+    const hasMore = docs.length > limit;
+    const items = hasMore ? docs.slice(0, limit) : docs;
+    const nextCursor = hasMore ? (items[items.length - 1] as any).createdAt.toISOString() : null;
+
+    return res.status(200).json({ items, nextCursor, hasMore });
+  } catch (error) {
+    console.error("Parivar paginated recent-submitted error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getDikriRecentSubmittedPaginated = async (req: Request, res: Response) => {
+  try {
+    const cursor = req.query.cursor as string | undefined;
+    const limit = Math.min(Number(req.query.limit) || 20, 50);
+
+    const query = cursor ? { createdAt: { $lt: new Date(cursor) } } : {};
+    const docs = await DikriUser.find(query).sort({ createdAt: -1 }).limit(limit + 1).lean();
+
+    const hasMore = docs.length > limit;
+    const items = hasMore ? docs.slice(0, limit) : docs;
+    const nextCursor = hasMore ? (items[items.length - 1] as any).createdAt.toISOString() : null;
+
+    return res.status(200).json({ items, nextCursor, hasMore });
+  } catch (error) {
+    console.error("Dikri paginated recent-submitted error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 export const getCombinedStats = async (_req: Request, res: Response) => {
   try {
     const [totalFamilies, totalDikriEntries, parivarPeopleAgg, dikriPeopleAgg] =

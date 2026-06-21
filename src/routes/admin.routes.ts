@@ -7,6 +7,8 @@ import {
   getDikriAdminStats,
   getDikriRecentEntries,
   getCombinedStats,
+  getRecentSubmittedPaginated,
+  getDikriRecentSubmittedPaginated,
 } from "../controllers/admin.controller";
 
 const router = Router();
@@ -19,5 +21,7 @@ router.post("/force-resync", forceResyncSheets);
 router.get("/dikri-stats", getDikriAdminStats);
 router.get("/dikri-recent", getDikriRecentEntries);
 router.get("/combined-stats", getCombinedStats);
+router.get("/recent-submitted", getRecentSubmittedPaginated);
+router.get("/dikri-recent-submitted", getDikriRecentSubmittedPaginated);
 
 export default router;
